@@ -23,16 +23,31 @@ export async function openRouterChatComplete(
     throw new Error('OPENROUTER_API_KEY not configured')
   }
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://skeelus.vercel.app',
-      'X-Title': 'Skeelus',
-    },
-    body: JSON.stringify(request),
-  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+
+  let response: Response
+
+  try {
+    response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://skeelus.vercel.app',
+        'X-Title': 'Skeelus',
+      },
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    })
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      throw new Error('OpenRouter request timed out after 20 seconds')
+    }
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
 
   if (!response.ok) {
     const text = await response.text()

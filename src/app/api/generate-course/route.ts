@@ -16,6 +16,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ session })
   } catch (error: any) {
+    console.error('Generate course error:', {
+      message: error?.message,
+      hasOpenRouterKey: Boolean(process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY),
+      hasSiteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL)
+    })
+
     return NextResponse.json(
       { error: error?.message || 'Failed to generate course' },
       { status: 500 }
