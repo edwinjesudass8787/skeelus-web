@@ -207,7 +207,7 @@ export default function SessionPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className animate-pulse text-brand-600 text-lg>Loading session...</div>
+        <div className="animate-pulse text-brand-600 text-lg">Loading session...</div>
       </div>
     )
   }
