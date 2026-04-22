@@ -10,7 +10,6 @@ const ICONS: Record<string, any> = {
   Clock,
   Calendar,
   TrendingUp,
-  TrendingUp: TrendingUp,
   BookOpen: Target,
   Lightbulb: Target,
   Zap: Target,
