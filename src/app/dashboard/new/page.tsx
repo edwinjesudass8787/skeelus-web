@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { CoursePayment } from '@/types'
+import { SavedSession } from '@/types'
 import { PipelineState } from '@/lib/pipeline'
 
 const PROMPT_CHIPS = [
@@ -14,6 +14,8 @@ const PROMPT_CHIPS = [
   'Retrospectives turn into complaints and nothing changes.',
   'I need to write stronger performance reviews.'
 ]
+
+const STORAGE_KEY = 'skeelus-web-state'
 
 export default function NewSessionPage() {
   const router = useRouter()
@@ -56,8 +58,32 @@ export default function NewSessionPage() {
         body: JSON.stringify({ sessionId: session.id })
       })
 
-      // Store in sessionStorage and navigate
-      sessionStorage.setItem('current-session', JSON.stringify(session))
+      const saved = localStorage.getItem(STORAGE_KEY)
+      let sessions: SavedSession[] = []
+      if (saved) {
+        try {
+          sessions = JSON.parse(saved).sessions || []
+        } catch {}
+      }
+
+      const nextSessions = [
+        {
+          id: session.id,
+          title: session.title,
+          topic: session.topic,
+          curriculum: session.curriculum,
+          currentStage: session.currentStage,
+          stageProgress: session.stageProgress,
+          startedAt: session.startedAt,
+          lastAccessedAt: Date.now(),
+          messages: session.messages,
+          payment: session.payment
+        },
+        ...sessions.filter((existing) => existing.id !== session.id)
+      ]
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions: nextSessions }))
+      sessionStorage.setItem('current-session-id', session.id)
       router.push(`/session/${session.id}`)
     } catch (e: any) {
       console.error(e)

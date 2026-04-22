@@ -106,7 +106,8 @@ export default function DashboardClient({ user }: Props) {
 
   const handleResumeSession = (session: SavedSession) => {
     const learningSession = toLearningSession(session)
-    sessionStorage.setItem('current-session', JSON.stringify(learningSession))
+    setSessions((prev) => prev.map((item) => item.id === session.id ? { ...item, lastAccessedAt: Date.now() } : item))
+    sessionStorage.setItem('current-session-id', learningSession.id)
     router.push(`/session/${session.id}`)
   }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { LearningSession, STAGES, STAGE_MILESTONES } from '@/types'
+import { LearningSession, SavedSession, STAGES, STAGE_MILESTONES } from '@/types'
 import { createClient } from '@/lib/supabase'
 import { COURSE_PRICE_CENTS, COURSE_CURRENCY } from '@/lib/payment-constants'
 import ChatTutor from '@/components/ChatTutor'
@@ -33,14 +33,36 @@ export default function SessionPage() {
 
   // Load session from sessionStorage
   useEffect(() => {
-    const stored = sessionStorage.getItem('current-session')
-    if (stored) {
+    const sessionId = sessionStorage.getItem('current-session-id') || String(params.id)
+    const saved = localStorage.getItem(STORAGE_KEY)
+
+    if (saved) {
       try {
-        setSession(JSON.parse(stored))
+        const parsed = JSON.parse(saved)
+        const matched = (parsed.sessions || []).find((item: SavedSession) => item.id === sessionId)
+        if (matched) {
+          setSession({
+            id: matched.id,
+            title: matched.title,
+            topic: matched.topic,
+            curriculum: matched.curriculum,
+            messages: matched.messages || [],
+            currentStage: matched.currentStage as 1 | 2 | 3 | 4 | 5,
+            stageProgress: matched.stageProgress,
+            startedAt: matched.startedAt,
+            videoPresentation: matched.videoPresentation,
+            videoEvaluation: matched.videoEvaluation,
+            videoAttempts: matched.videoAttempts,
+            caseStudyPresentation: matched.caseStudyPresentation,
+            caseStudyEvaluation: matched.caseStudyEvaluation,
+            actionPlanDraft: matched.actionPlanDraft,
+            payment: matched.payment
+          })
+        }
       } catch {}
     }
     setLoading(false)
-  }, [])
+  }, [params.id])
 
   // Check payment status on mount
   useEffect(() => {
