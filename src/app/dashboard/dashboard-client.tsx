@@ -4,14 +4,45 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { SavedSession, STAGES } from '@/types'
-import { pullRemoteSessions, mergeSessions, upsertRemoteSessions, toLearningSession } from '@/lib/sessionSync'
+import { SavedSession, STAGES, LearningSession } from '@/types'
 
 interface Props {
   user: { id: string; email?: string | null; fullName?: string | null }
 }
 
 const STORAGE_KEY = 'skeelus-web-state'
+
+function mergeSessions(local: SavedSession[], remote: SavedSession[]): SavedSession[] {
+  const merged = new Map<string, SavedSession>()
+  for (const session of local) merged.set(session.id, session)
+  for (const session of remote) {
+    const existing = merged.get(session.id)
+    if (!existing || session.lastAccessedAt > existing.lastAccessedAt) {
+      merged.set(session.id, session)
+    }
+  }
+  return Array.from(merged.values()).sort((a, b) => b.lastAccessedAt - a.lastAccessedAt)
+}
+
+function toLearningSession(saved: SavedSession): LearningSession {
+  return {
+    id: saved.id,
+    title: saved.title,
+    topic: saved.topic,
+    curriculum: saved.curriculum,
+    messages: saved.messages || [],
+    currentStage: saved.currentStage as 1 | 2 | 3 | 4 | 5,
+    stageProgress: saved.stageProgress,
+    startedAt: saved.startedAt,
+    videoPresentation: saved.videoPresentation,
+    videoEvaluation: saved.videoEvaluation,
+    videoAttempts: saved.videoAttempts,
+    caseStudyPresentation: saved.caseStudyPresentation,
+    caseStudyEvaluation: saved.caseStudyEvaluation,
+    actionPlanDraft: saved.actionPlanDraft,
+    payment: saved.payment
+  }
+}
 
 export default function DashboardClient({ user }: Props) {
   const router = useRouter()
@@ -21,10 +52,8 @@ export default function DashboardClient({ user }: Props) {
   const [loading, setLoading] = useState(true)
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'error'>('idle')
 
-  // Load local sessions and pull from Supabase
   useEffect(() => {
     const loadSessions = async () => {
-      // First load from localStorage
       const saved = localStorage.getItem(STORAGE_KEY)
       let localSessions: SavedSession[] = []
       if (saved) {
@@ -37,12 +66,13 @@ export default function DashboardClient({ user }: Props) {
       setSessions(localSessions)
       setLoading(false)
 
-      // Then pull from Supabase and merge
       try {
-        const remote = await pullRemoteSessions()
-        const merged = mergeSessions(localSessions, remote)
-        setSessions(merged)
-        setSyncState('idle')
+        const res = await fetch('/api/sessions')
+        if (res.ok) {
+          const remote: SavedSession[] = await res.json()
+          const merged = mergeSessions(localSessions, remote)
+          setSessions(merged)
+        }
       } catch (e) {
         console.warn('Failed to pull remote sessions:', e)
         setSyncState('error')
@@ -52,13 +82,16 @@ export default function DashboardClient({ user }: Props) {
     loadSessions()
   }, [])
 
-  // Push session changes to Supabase (debounced)
   useEffect(() => {
     if (!user.id) return
 
     const timer = setTimeout(() => {
       setSyncState('syncing')
-      upsertRemoteSessions(sessions)
+      fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessions })
+      })
         .then(() => setSyncState('idle'))
         .catch(() => setSyncState('error'))
     }, 1500)
@@ -66,7 +99,6 @@ export default function DashboardClient({ user }: Props) {
     return () => clearTimeout(timer)
   }, [sessions, user.id])
 
-  // Save to localStorage when sessions change
   useEffect(() => {
     if (loading) return
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions }))
@@ -74,15 +106,17 @@ export default function DashboardClient({ user }: Props) {
 
   const handleResumeSession = (session: SavedSession) => {
     const learningSession = toLearningSession(session)
-    // Store in sessionStorage for the session page to pick up
     sessionStorage.setItem('current-session', JSON.stringify(learningSession))
     router.push(`/session/${session.id}`)
   }
 
   const handleDeleteSession = (sessionId: string) => {
     setSessions(prev => prev.filter(s => s.id !== sessionId))
-    // Also delete from Supabase
-    import('@/lib/sessionSync').then(m => m.deleteRemoteSession(sessionId).catch(() => {}))
+    fetch('/api/sessions', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId })
+    }).catch(() => {})
   }
 
   const handleSignOut = async () => {

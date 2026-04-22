@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LearningSession, STAGES, STAGE_MILESTONES } from '@/types'
 import { createClient } from '@/lib/supabase'
-import { upsertRemoteSessions } from '@/lib/sessionSync'
+import { COURSE_PRICE_CENTS, COURSE_CURRENCY } from '@/lib/payment-constants'
 import { COURSE_PRICE_CENTS, COURSE_CURRENCY } from '@/lib/payment-constants'
 import ChatTutor from '@/components/ChatTutor'
 import VideoPresentation from '@/components/VideoPresentation'
@@ -92,7 +92,11 @@ export default function SessionPage() {
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions }))
-    upsertRemoteSessions(sessions).catch(console.warn)
+    fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessions })
+    }).catch(console.warn)
   }
 
   // Handle session update
