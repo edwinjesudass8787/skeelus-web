@@ -18,7 +18,7 @@ export function createApiClient(apiKey: string): ApiClient {
 export async function openRouterChatComplete(
   request: OpenRouterRequest
 ): Promise<OpenRouterResponse> {
-  const apiKey = process.env.OPENROUTER_API_KEY
+  const apiKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
   if (!apiKey) {
     throw new Error('OPENROUTER_API_KEY not configured')
   }
