@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { CoursePayment } from '@/types'
-import { ensurePaymentRow } from '@/lib/payments'
 import { runFullPipeline, createSession } from '@/lib/pipeline'
 import { generateSessionTitle } from '@/lib/openrouter'
 import { PipelineState } from '@/lib/pipeline'
@@ -51,7 +50,11 @@ export default function NewSessionPage() {
       const session = createSession(sessionTitle, topicToUse, curriculum)
 
       // Ensure payment row exists
-      await ensurePaymentRow(session.id)
+      await fetch('/api/ensure-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: session.id })
+      })
 
       // Store in sessionStorage and navigate
       sessionStorage.setItem('current-session', JSON.stringify(session))
