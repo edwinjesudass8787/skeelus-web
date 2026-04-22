@@ -206,7 +206,7 @@ export default function SessionPage() {
 
   if (loading) {
     return (
-      <div className min-h-screen flex items-center justify-center>
+      <div className="min-h-screen flex items-center justify-center">
         <div className animate-pulse text-brand-600 text-lg>Loading session...</div>
       </div>
     )
@@ -214,7 +214,7 @@ export default function SessionPage() {
 
   if (!session) {
     return (
-      <div className min-h-screen flex items-center justify-center flex-col gap-4>
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <p className text-gray-500>Session not found</p>
         <Link href='/dashboard' className='px-4 py-2 bg-brand-600 text-white rounded-xl'>
           Go to Dashboard
