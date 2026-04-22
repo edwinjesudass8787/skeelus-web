@@ -131,6 +131,7 @@ export interface Portfolio {
   topic: string
   curriculum: Curriculum
   reflections: string
+  evidence?: string | null
   completedAt: number
   html: string
 }
@@ -190,6 +191,11 @@ export const COURSE_CURRENCY = 'USD' as const
 export interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
+  images?: {
+    image_url: {
+      url: string
+    }
+  }[]
 }
 
 export interface OpenRouterRequest {

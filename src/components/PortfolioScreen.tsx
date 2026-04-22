@@ -25,7 +25,7 @@ export default function PortfolioScreen({ portfolio, onRestart }: Props) {
             <Award className='w-12 h-12' />
           </div>
           <h1 className='text-4xl font-bold text-gray-900 mb-3'>Congratulations!</h1>
-          <p className='text-xl text-gray-600'>You've completed your learning journey in {portfolio.topic}</p>
+          <p className='text-xl text-gray-600'>You&apos;ve completed your learning journey in {portfolio.topic}</p>
         </div>
 
         {/* Certificate Card */}

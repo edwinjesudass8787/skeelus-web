@@ -110,7 +110,7 @@ export default function NewSessionPage() {
           What problem are you trying to solve at work?
         </h1>
         <p className="text-gray-500 mb-8">
-          Describe your situation and we'll build a personalized course for you.
+          Describe your situation and we&apos;ll build a personalized course for you.
         </p>
 
         {/* Input */}
@@ -207,7 +207,7 @@ export default function NewSessionPage() {
         <div className="mt-8 rounded-2xl border border-brand-100 bg-brand-50/60 p-5 text-left">
           <div className="text-xs font-semibold uppercase tracking-wide text-brand-700 mb-2">Example prompt</div>
           <p className="text-sm leading-6 text-brand-900">
-            "I just became a first-time manager and I struggle to run effective 1-on-1s. I want to learn how to set expectations, give useful feedback, and build trust with my team."
+            &quot;I just became a first-time manager and I struggle to run effective 1-on-1s. I want to learn how to set expectations, give useful feedback, and build trust with my team.&quot;
           </p>
         </div>
       </main>

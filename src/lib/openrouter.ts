@@ -371,11 +371,17 @@ Return JSON:
     return JSON.parse(response)
   } catch {
     const strongEvals = evaluations.filter(e => e.understandingLevel === 'strong')
-    const conceptsDemo = strongEvals.map(e => e.conceptId).filter(Boolean)
+    const conceptsDemo = strongEvals
+      .map(e => e.conceptId)
+      .filter((conceptId): conceptId is string => Boolean(conceptId))
+    const conceptsNeedingWork = evaluations
+      .filter(e => e.understandingLevel === 'weak')
+      .map(e => e.conceptId)
+      .filter((conceptId): conceptId is string => Boolean(conceptId))
 
     return {
       conceptsDemonstrated: conceptsDemo,
-      conceptsNeedingWork: evaluations.filter(e => e.understandingLevel === 'weak').map(e => e.conceptId).filter(Boolean),
+      conceptsNeedingWork,
       overallReadiness: conceptsDemo.length >= Math.ceil(evaluations.length / 2) ? 'ready' : 'almost_ready',
       summary: 'Based on the conversation, you seem ready to continue.'
     }

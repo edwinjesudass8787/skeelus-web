@@ -143,7 +143,7 @@ export default function VideoPresentationComponent({
         <div className='bg-brand-50 rounded-2xl p-6 mb-6'>
           <h2 className='text-lg font-semibold text-brand-900 mb-3'>📹 Record Your Presentation</h2>
           <p className='text-brand-800 text-sm leading-relaxed mb-4'>
-            Explain the key concepts you've learned in your own words. Teach like you're explaining
+            Explain the key concepts you&apos;ve learned in your own words. Teach like you&apos;re explaining
             to a colleague or friend. Aim for 3-5 minutes.
           </p>
           <div className='text-sm text-brand-700'>
