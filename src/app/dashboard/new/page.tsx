@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { CoursePayment } from '@/types'
-import { runFullPipeline, createSession } from '@/lib/pipeline'
-import { generateSessionTitle } from '@/lib/openrouter'
 import { PipelineState } from '@/lib/pipeline'
 
 const PROMPT_CHIPS = [
@@ -38,16 +36,18 @@ export default function NewSessionPage() {
       // Run full curriculum pipeline
       setProgress({ stage: 'fetching_context', progress: 5 })
 
-      const { curriculum } = await runFullPipeline(topicToUse, (state) => {
-        setProgress(state)
+      const response = await fetch('/api/generate-course', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: topicToUse })
       })
 
-      // Generate session title
-      setProgress({ stage: 'curriculum', progress: 55, currentConcept: 'Generating title...' })
-      const sessionTitle = await generateSessionTitle(topicToUse, curriculum)
+      const payload = await response.json()
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to generate course')
+      }
 
-      // Create session
-      const session = createSession(sessionTitle, topicToUse, curriculum)
+      const session = payload.session
 
       // Ensure payment row exists
       await fetch('/api/ensure-payment', {
