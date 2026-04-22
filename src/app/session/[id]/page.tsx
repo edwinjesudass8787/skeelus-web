@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { LearningSession, STAGES, STAGE_MILESTONES } from '@/types'
 import { createClient } from '@/lib/supabase'
 import { upsertRemoteSessions } from '@/lib/sessionSync'
-import { verifyCoursePayment, createCheckoutSession, COURSE_PRICE_CENTS, COURSE_CURRENCY } from '@/lib/payments'
+import { COURSE_PRICE_CENTS, COURSE_CURRENCY } from '@/lib/payment-constants'
 import ChatTutor from '@/components/ChatTutor'
 import VideoPresentation from '@/components/VideoPresentation'
 import CaseStudyPractice from '@/components/CaseStudyPractice'
@@ -49,19 +49,26 @@ export default function SessionPage() {
 
     const paymentParam = searchParams.get('payment')
     if (paymentParam === 'success') {
-      // Verify payment with server
-      verifyCoursePayment(session.id)
-        .then(result => {
-          if (result.status === 'paid') {
-            setSession(prev => prev ? {
-              ...prev,
-              payment: { status: 'paid', priceCents: COURSE_PRICE_CENTS, currency: COURSE_CURRENCY, paidAt: Date.now(), receiptUrl: result.receiptUrl }
-            } : null)
-            // Update localStorage
-            updateLocalStorage({ ...session, payment: { status: 'paid', priceCents: COURSE_PRICE_CENTS, currency: COURSE_CURRENCY, paidAt: Date.now(), receiptUrl: result.receiptUrl } })
-          }
+      const urlParams = new URLSearchParams(window.location.search)
+      const checkoutSessionId = urlParams.get('session_id')
+      if (checkoutSessionId) {
+        fetch('/api/verify-course-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checkoutSessionId })
         })
-        .catch(console.error)
+          .then(res => res.json())
+          .then(result => {
+            if (result.status === 'paid') {
+              setSession(prev => prev ? {
+                ...prev,
+                payment: { status: 'paid', priceCents: COURSE_PRICE_CENTS, currency: COURSE_CURRENCY, paidAt: Date.now(), receiptUrl: result.receiptUrl }
+              } : null)
+              updateLocalStorage({ ...session, payment: { status: 'paid', priceCents: COURSE_PRICE_CENTS, currency: COURSE_CURRENCY, paidAt: Date.now(), receiptUrl: result.receiptUrl } })
+            }
+          })
+          .catch(console.error)
+      }
     }
   }, [searchParams, session])
 
@@ -165,7 +172,12 @@ export default function SessionPage() {
     setPaymentLoading(true)
 
     try {
-      const { url } = await createCheckoutSession(session.id, session.title)
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: session.id, title: session.title })
+      })
+      const { url } = await response.json()
       window.location.href = url
     } catch (e: any) {
       console.error('Payment error:', e)
