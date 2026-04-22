@@ -215,7 +215,7 @@ export default function SessionPage() {
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className text-gray-500>Session not found</p>
+        <p className="text-gray-500">Session not found</p>
         <Link href='/dashboard' className='px-4 py-2 bg-brand-600 text-white rounded-xl'>
           Go to Dashboard
         </Link>
