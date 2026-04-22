@@ -197,6 +197,7 @@ export interface OpenRouterRequest {
   messages: OpenRouterMessage[]
   temperature?: number
   max_tokens?: number
+  stream?: boolean
 }
 
 export interface OpenRouterResponse {
