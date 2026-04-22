@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.retrieve(checkoutSessionId)
 
     const status = session.payment_status === 'paid' ? 'paid' : 'not_paid'
-    const receiptUrl = session.payment_status === 'paid' ? session.receipt_email : null
+    const receiptUrl = session.payment_status === 'paid' ? (session as any).receipt_url || null : null
 
     // Update the payment row in Supabase
     await supabase
